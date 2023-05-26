@@ -40,12 +40,12 @@ write_concept_nodes(Stream) :-
 write_concept_nodes(_).
 
 write_attributes(_, _, []).
-write_attributes(Stream, Concept, [(Name, Value) | Rest]) :-
+write_attributes(Stream, Concept, [(Name, _Value) | Rest]) :-
     atom_string(Name, NameStr),
-    atom_string(Value, ValueStr),
     format(Stream, '"~w=’~w’" [shape=rectangle, color=goldenrod];\n', [Concept, NameStr]),
     format(Stream, '"~w"->"~w=’~w’" [label="properties", style=dotted, color=red];\n', [Concept, Concept, NameStr]),
     write_attributes(Stream, Concept, Rest).
+
 
 
 % Write individual nodes to the txt file
