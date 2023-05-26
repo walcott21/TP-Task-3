@@ -21,10 +21,9 @@ count_attributes(Concept, Count) :-
     conceito(name(Concept), atribs(Attributes)),
     length(Attributes, Count).
 
-% Generate DOT code to visualize the ontology graph
 generate_dot_code :-
     tell('ontology_graph.dot'),
-    writeln('digraph ontology {'),
+    writeln('digraph map {'),
     write_concept_nodes,
     write_relation_nodes,
     write_triples,
@@ -33,21 +32,30 @@ generate_dot_code :-
 
 write_concept_nodes :-
     conceito(name(Concept), _),
-    format('  "~w"[shape=ellipse,style=filled,color=turquoise4];~n', [Concept]),
+    format('  "~w" [shape=ellipse, style=filled, color=turquoise4];~n', [Concept]),
+    format('  "name" [shape=rectangle, color=turquoise4];~n'),
+    format('  "~w"->"name" [label="properties", style=dotted, color=red];~n', [Concept]),
     fail.
 write_concept_nodes.
 
 write_relation_nodes :-
     relacao(Relation),
-    format('  "~w"[shape=ellipse,style=filled,color=turquoise4];~n', [Relation]),
+    format('  "~w" [shape=ellipse, style=filled, color=turquoise4];~n', [Relation]),
+    format('  "name" [shape=rectangle, color=turquoise4];~n'),
+    format('  "~w"->"name" [label="properties", style=dotted, color=red];~n', [Relation]),
     fail.
 write_relation_nodes.
 
 write_triples :-
-    triplo(Subject, Relation, Object, _),
-    format('  "~w"->"~w"[label="~w"];~n', [Subject, Object, Relation]),
+    triplo(Subject, Relation, Object, atribs(Attributes)),
+    format('  "~w"->"~w" [label="~w", style=dashed];~n', [Subject, Object, Relation]),
+    format('  "name=’~w’" [shape=rectangle, color=goldenrod];~n', [Subject]),
+    format('  "~w"->"name=’~w’" [label="properties", style=dotted, color=red];~n', [Subject, Subject]),
+    format('  "name=’~w’" [shape=rectangle, color=goldenrod];~n', [Object]),
+    format('  "~w"->"name=’~w’" [label="properties", style=dotted, color=red];~n', [Object, Object]),
     fail.
 write_triples.
+
 
 % List all concepts
 list_concepts :-
