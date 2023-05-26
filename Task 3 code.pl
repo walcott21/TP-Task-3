@@ -55,7 +55,7 @@ write_triplet_nodes(Stream) :-
     write_attributes(Stream, Subject, AttributeList),
     fail.
 write_triplet_nodes(Stream) :-
-    triplo(Subject, Relation, Object),
+    triplo(Subject, Relation, Object, _),
     format(Stream, '"~w"->"~w" [label="~w"];\n', [Subject, Object, Relation]),
     fail.
 write_triplet_nodes(_).
