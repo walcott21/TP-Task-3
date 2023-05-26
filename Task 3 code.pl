@@ -137,8 +137,8 @@ validate_triple(Subject, Relation, Object) :-
 % Initial ontology data
 initialize_ontology_data :-
     % Insert concept specifications
-    insert_concept_specification(name(city), [(name, string)]),
-    insert_concept_specification(name(traveler), [(name, string)]),
+    insert_concept_specification(city, [(name, string)]),
+    insert_concept_specification(traveler, [(name, string)]),
 
     % Insert individuals
     insert_individual(pl),
