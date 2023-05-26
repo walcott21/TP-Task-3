@@ -31,15 +31,22 @@ generate_dot_code :-
     write(Stream, '}'),
     close(Stream).
 
-% Write concept nodes to the txt file
+% Write concept nodes to the text file
 write_concept_nodes(Stream) :-
     conceito(name(Concept), atribs(Attributes)),
-    Attributes = [(AttributeName, _) | _],
     format(Stream, '"~w" [shape=ellipse, style=filled, color=turquoise4];\n', [Concept]),
-    format(Stream, '"~w" [shape=rectangle, color=turquoise4];\n', [AttributeName]),
-    format(Stream ,'"~w"->"~w" [label="properties", style=dotted, color=red];\n', [Concept, AttributeName]),
+    write_attributes(Stream, Concept, Attributes),
     fail.
 write_concept_nodes(_).
+
+write_attributes(_, _, []).
+write_attributes(Stream, Concept, [(Name, Value) | Rest]) :-
+    atom_string(Name, NameStr),
+    atom_string(Value, ValueStr),
+    format(Stream, '"~w=’~w’" [shape=rectangle, color=goldenrod];\n', [Concept, NameStr]),
+    format(Stream, '"~w"->"~w=’~w’" [label="properties", style=dotted, color=red];\n', [Concept, Concept, NameStr]),
+    write_attributes(Stream, Concept, Rest).
+
 
 % Write individual nodes to the txt file
 write_individual_nodes(Stream) :-
@@ -51,26 +58,23 @@ write_individual_nodes(_).
 % Write triplet nodes to the text file
 write_triplet_nodes(Stream) :-
     triplo(Subject, Relation, Object, AttributeList),
-    format(Stream, '"~w"->"~w" [label="~w", style=dashed];\n', [Subject, Object, Relation]),
-    write_attributes(Stream, Subject, AttributeList),
-    fail.
-write_triplet_nodes(Stream) :-
-    triplo(Subject, Relation, Object, _),
     format(Stream, '"~w"->"~w" [label="~w"];\n', [Subject, Object, Relation]),
+    write_attributes(Stream, Subject, Object, AttributeList),
     fail.
 write_triplet_nodes(_).
 
 % Write attributes to the text file
-write_attributes(_, _, []).
-write_attributes(Stream, Subject, atribs([])).
-write_attributes(Stream, Subject, atribs([(Name, Value) | Rest])) :-
-    format(Stream, '"~w=’~w’" [shape=rectangle, color=goldenrod];\n', [Name, Value]),
-    format(Stream, '"~w"->"~w"="~w" [label="properties", style=dotted, color=red];\n', [Subject, Name, Value]),
-    write_attributes(Stream, Subject, atribs(Rest)).
+write_attributes(_, _, _, []).
+write_attributes(Stream, Subject, Object, [(Name, Value) | Rest]) :-
+    atom_string(Name, NameStr),
+    atom_string(Value, ValueStr),
+    format(Stream, '"~w=\\\'~w\\\'" [shape=rectangle, color=goldenrod];\n', [Subject, NameStr]),
+    format(Stream, '"~w"->"~w=\\\'~w\\\'" [label="~w", style=dotted, color=red];\n', [Subject, Subject, NameStr, Object]),
+    write_attributes(Stream, Subject, Object, Rest).
+
 % Entry point to generate the DOT code and save it to a file
 generate_ontology_graph :-
     generate_dot_code.
-
 
 % List all concepts
 list_concepts :-
@@ -132,7 +136,6 @@ validate_triple(Subject, Relation, Object) :-
         relacao(Relation),
         (individuo(Object); (conceito(name(Object), _), Object \= name(_)))
     ).
-
 
 % Initial ontology data
 initialize_ontology_data :-
@@ -222,11 +225,11 @@ process_option(5) :-
     writeln('Enter the concept name:'),
     read(Concept),
     count_attributes(Concept, Count),
-    format('Number of attributes: ~w~n', [Count]),
+    format('Concept ~w has ~w attribute(s).~n', [Concept, Count]),
     menu.
 process_option(6) :-
-    generate_dot_code,
-    writeln('DOT code generated.'),
+    generate_ontology_graph,
+    writeln('DOT code generated and saved to "graph.txt".'),
     menu.
 process_option(7) :-
     list_concepts,
@@ -246,5 +249,5 @@ process_option(11) :-
 process_option(0) :-
     writeln('Exiting...').
 
-% Run the program
+% Initialize the program
 :- initialization(init).
