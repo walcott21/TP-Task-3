@@ -21,40 +21,55 @@ count_attributes(Concept, Count) :-
     conceito(name(Concept), atribs(Attributes)),
     length(Attributes, Count).
 
+% Generate DOT code representing the ontology graph and save it to a text file
 generate_dot_code :-
-    tell('ontology_graph.dot'),
-    writeln('digraph map {'),
-    write_concept_nodes,
-    write_relation_nodes,
-    write_triples,
-    writeln('}'),
-    told.
+    open('graph.txt', write, Stream),
+    write(Stream, 'digraph map {\n'),
+    write_concept_nodes(Stream),
+    write_individual_nodes(Stream),
+    write_triplet_nodes(Stream),
+    write(Stream, '}'),
+    close(Stream).
 
-write_concept_nodes :-
-    conceito(name(Concept), _),
-    format('  "~w" [shape=ellipse, style=filled, color=turquoise4];~n', [Concept]),
-    format('  "name" [shape=rectangle, color=turquoise4];~n'),
-    format('  "~w"->"name" [label="properties", style=dotted, color=red];~n', [Concept]),
+% Write concept nodes to the txt file
+write_concept_nodes(Stream) :-
+    conceito(name(Concept), atribs(Attributes)),
+    Attributes = [(AttributeName, _) | _],
+    format(Stream, '"~w" [shape=ellipse, style=filled, color=turquoise4];\n', [Concept]),
+    format(Stream, '"~w" [shape=rectangle, color=turquoise4];\n', [AttributeName]),
+    format(Stream ,'"~w"->"~w" [label="properties", style=dotted, color=red];\n', [Concept, AttributeName]),
     fail.
-write_concept_nodes.
+write_concept_nodes(_).
 
-write_relation_nodes :-
-    relacao(Relation),
-    format('  "~w" [shape=ellipse, style=filled, color=turquoise4];~n', [Relation]),
-    format('  "name" [shape=rectangle, color=turquoise4];~n'),
-    format('  "~w"->"name" [label="properties", style=dotted, color=red];~n', [Relation]),
+% Write individual nodes to the txt file
+write_individual_nodes(Stream) :-
+    individuo(Individual),
+    format(Stream, '"~w" [shape=rectangle, style=filled, color=goldenrod];\n', [Individual]),
     fail.
-write_relation_nodes.
+write_individual_nodes(_).
 
-write_triples :-
-    triplo(Subject, Relation, Object, atribs(Attributes)),
-    format('  "~w"->"~w" [label="~w", style=dashed];~n', [Subject, Object, Relation]),
-    format('  "name=’~w’" [shape=rectangle, color=goldenrod];~n', [Subject]),
-    format('  "~w"->"name=’~w’" [label="properties", style=dotted, color=red];~n', [Subject, Subject]),
-    format('  "name=’~w’" [shape=rectangle, color=goldenrod];~n', [Object]),
-    format('  "~w"->"name=’~w’" [label="properties", style=dotted, color=red];~n', [Object, Object]),
+% Write triplet nodes to the text file
+write_triplet_nodes(Stream) :-
+    triplo(Subject, Relation, Object, AttributeList),
+    format(Stream, '"~w"->"~w" [label="~w", style=dashed];\n', [Subject, Object, Relation]),
+    write_attributes(Stream, Subject, AttributeList),
     fail.
-write_triples.
+write_triplet_nodes(Stream) :-
+    triplo(Subject, Relation, Object),
+    format(Stream, '"~w"->"~w" [label="~w"];\n', [Subject, Object, Relation]),
+    fail.
+write_triplet_nodes(_).
+
+% Write attributes to the text file
+write_attributes(_, _, []).
+write_attributes(Stream, Subject, atribs([])).
+write_attributes(Stream, Subject, atribs([(Name, Value) | Rest])) :-
+    format(Stream, '"~w=’~w’" [shape=rectangle, color=goldenrod];\n', [Name, Value]),
+    format(Stream, '"~w"->"~w"="~w" [label="properties", style=dotted, color=red];\n', [Subject, Name, Value]),
+    write_attributes(Stream, Subject, atribs(Rest)).
+% Entry point to generate the DOT code and save it to a file
+generate_ontology_graph :-
+    generate_dot_code.
 
 
 % List all concepts
