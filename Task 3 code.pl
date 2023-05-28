@@ -66,13 +66,13 @@ write_triplet_nodes(Stream) :-
     fail.
 write_triplet_nodes(_).
 
-% Then the attributes
-write_attributes(_, _, []).
-write_attributes(Stream, Concept, [(Name, _Value) | Rest]) :-
+write_attributes(_, _, _, []).
+write_attributes(Stream, Subject, Object, [(Name, _Value) | Rest]) :-
     atom_string(Name, NameStr),
-    format(Stream, '"~w=’~w’" [shape=rectangle, color=goldenrod];\n', [Concept, NameStr]),
-    format(Stream, '"~w"->"~w=’~w’" [label="properties", style=dotted, color=red];\n', [Concept, Concept, NameStr]),
-    write_attributes(Stream, Concept, Rest).
+    format(Stream, '"~w=’~w’" [shape=rectangle, color=goldenrod];\n', [Subject, NameStr]),
+    format(Stream, '"~w"->"~w=’~w’" [label="properties", style=dotted, color=red];\n', [Subject, Object, NameStr]),
+    write_attributes(Stream, Subject, Object, Rest).
+
 
 
 
@@ -234,7 +234,7 @@ process_triple_input(Subject, Relation, Object) :-
     ).
 
 process_triple_with_attributes(Subject, Relation, Object) :-
-    writeln('Enter the attributes (in the format [(Name, Value)]):'),
+    writeln('Enter the attributes (in the format Name, Value):'),
     read(Attributes),
     insert_triple(Subject, Relation, Object, Attributes),
     writeln('Triple inserted with attributes.'),
