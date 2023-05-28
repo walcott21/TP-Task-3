@@ -1,29 +1,29 @@
 :- dynamic ontologia/1, conceito/2, individuo/1, relacao/1, triplo/4.
 
-% Insert the specification of a new concept
+% Here we insert new concept specification to our ontology, then we assert the name and attributes.
 insert_concept_specification(Concept, Attributes) :-
     assertz(conceito(name(Concept), atribs(Attributes))).
 
-% Insert a new individual
+% Here we insert new individual specification to our ontology, then we assert the name
 insert_individual(Individual) :-
     assertz(individuo(Individual)).
 
-% Insert a new relation
+% We do the same here for Relation
 insert_relation(Relation) :-
     assertz(relacao(Relation)).
 
-% Insert a new triple
+% Here we insert triple but we have to assert the subject, relation, and object
 insert_triple(Subject, Relation, Object) :-
     assertz(triplo(Subject, Relation, Object, [])).
 
-% Count the number of attributes of a concept
+% Here we count the number of attributes that we have for a concept
 count_attributes(Concept, Count) :-
     conceito(name(Concept), atribs(Attributes)),
     length(Attributes, Count).
 
-% Generate DOT code representing the ontology graph and save it to a text file
+% Here we generate the dot code, first we have the basic structure and the name of the file
 generate_dot_code :-
-    open('graph.txt', write, Stream),
+    open('DotGraph.txt', write, Stream),
     write(Stream, 'digraph map {\n'),
     write_concept_nodes(Stream),
     write_individual_nodes(Stream),
@@ -31,7 +31,7 @@ generate_dot_code :-
     write(Stream, '}'),
     close(Stream).
 
-% Write concept nodes to the text file
+% After structuring the the dotfile, here we detail how concept nodes will be written
 write_concept_nodes(Stream) :-
     conceito(name(Concept), atribs(Attributes)),
     format(Stream, '"~w" [shape=ellipse, style=filled, color=turquoise4];\n', [Concept]),
@@ -48,14 +48,14 @@ write_attributes(Stream, Concept, [(Name, _Value) | Rest]) :-
 
 
 
-% Write individual nodes to the txt file
+% We then do the same thing with individual nodes
 write_individual_nodes(Stream) :-
     individuo(Individual),
     format(Stream, '"~w" [shape=rectangle, style=filled, color=goldenrod];\n', [Individual]),
     fail.
 write_individual_nodes(_).
 
-% Write triplet nodes to the text file
+% Again, same with triples
 write_triplet_nodes(Stream) :-
     triplo(Subject, Relation, Object, AttributeList),
     format(Stream, '"~w"->"~w" [label="~w"];\n', [Subject, Object, Relation]),
@@ -63,7 +63,7 @@ write_triplet_nodes(Stream) :-
     fail.
 write_triplet_nodes(_).
 
-% Write attributes to the text file
+% Then the attributes
 write_attributes(_, _, _, []).
 write_attributes(Stream, Subject, Object, [(Name, Value) | Rest]) :-
     atom_string(Name, NameStr),
@@ -76,7 +76,7 @@ write_attributes(Stream, Subject, Object, [(Name, Value) | Rest]) :-
 generate_ontology_graph :-
     generate_dot_code.
 
-% List all concepts
+% Simple function to list all concepts
 list_concepts :-
     writeln('Concepts:'),
     conceito(name(Concept), _),
@@ -84,13 +84,13 @@ list_concepts :-
     fail.
 list_concepts.
 
-% List all individuals
+% Same thing for individuals, here we use findall but it can also be done in recursive like other listing functions
 list_individuals :-
     writeln('Individuals:'),
     findall(Individual, individuo(Individual), Individuals),
     writeln(Individuals).
 
-% List all relations
+% Again with relations
 list_relations :-
     writeln('Relations:'),
     relacao(Relation),
@@ -98,7 +98,7 @@ list_relations :-
     fail.
 list_relations.
 
-% List all triples
+% Same for triples
 list_triples :-
     writeln('Triples:'),
     triplo(Subject, Relation, Object, _),
@@ -106,14 +106,14 @@ list_triples :-
     fail.
 list_triples.
 
-% Validate existing triples and categorize them as valid or invalid
+% Here we validate the triples we have by making sure that they are formed correctly.
 validate_existing_triples :-
     writeln('Valid Triples:'),
     validate_valid_triples,
     writeln('Invalid Triples:'),
     validate_invalid_triples.
 
-% Validate valid triples
+% Validatation to find valid triples
 validate_valid_triples :-
     triplo(Subject, Relation, Object, _),
     validate_triple(Subject, Relation, Object),
@@ -121,7 +121,7 @@ validate_valid_triples :-
     fail.
 validate_valid_triples.
 
-% Validate invalid triples
+% Validation to find invalid triples
 validate_invalid_triples :-
     triplo(Subject, Relation, Object, _),
     \+ validate_triple(Subject, Relation, Object),
@@ -129,7 +129,7 @@ validate_invalid_triples :-
     fail.
 validate_invalid_triples.
 
-% Validate a triple
+% This is the function used to basically check if the rules are applied and structure is correct
 validate_triple(Subject, Relation, Object) :-
     (
         (individuo(Subject); (conceito(name(Subject), _), Subject \= name(_))),
@@ -137,7 +137,7 @@ validate_triple(Subject, Relation, Object) :-
         (individuo(Object); (conceito(name(Object), _), Object \= name(_)))
     ).
 
-% Initial ontology data
+% Here we insert our Ontology data
 initialize_ontology_data :-
     % Insert concept specifications
     insert_concept_specification(city, [(name, string)]),
@@ -152,6 +152,7 @@ initialize_ontology_data :-
     % Insert relations
     insert_relation(alreadyVisited),
     insert_relation(lives),
+    insert_relation(iof),
 
     % Insert triples
     insert_triple(pl, iof, traveler),
@@ -184,13 +185,13 @@ menu :-
     writeln('0. Exit'),
     read_option.
 
-% Read user's option
+% Here we take the option from the user
 read_option :-
-    writeln('Enter your option:'),
+    writeln('Please choose an option:'),
     read(Option),
     process_option(Option).
 
-% Process user's option
+% Processing the chosen option
 process_option(1) :-
     writeln('Enter the concept name:'),
     read(Concept),
@@ -249,5 +250,5 @@ process_option(11) :-
 process_option(0) :-
     writeln('Exiting...').
 
-% Initialize the program
+% Initialization of our program
 :- initialization(init).
