@@ -16,6 +16,9 @@ insert_relation(Relation) :-
 insert_triple(Subject, Relation, Object) :-
     assertz(triplo(Subject, Relation, Object, [])).
 
+insert_triple(Subject, Relation, Object, Attributes) :-
+    assertz(triplo(Subject, Relation, Object, Attributes)).
+
 % Here we count the number of attributes that we have for a concept
 count_attributes(Concept, Count) :-
     conceito(name(Concept), atribs(Attributes)),
@@ -64,13 +67,14 @@ write_triplet_nodes(Stream) :-
 write_triplet_nodes(_).
 
 % Then the attributes
-write_attributes(_, _, _, []).
-write_attributes(Stream, Subject, Object, [(Name, Value) | Rest]) :-
+write_attributes(_, _, []).
+write_attributes(Stream, Concept, [(Name, _Value) | Rest]) :-
     atom_string(Name, NameStr),
-    atom_string(Value, ValueStr),
-    format(Stream, '"~w=\\\'~w\\\'" [shape=rectangle, color=goldenrod];\n', [Subject, NameStr]),
-    format(Stream, '"~w"->"~w=\\\'~w\\\'" [label="~w", style=dotted, color=red];\n', [Subject, Subject, NameStr, Object]),
-    write_attributes(Stream, Subject, Object, Rest).
+    format(Stream, '"~w=’~w’" [shape=rectangle, color=goldenrod];\n', [Concept, NameStr]),
+    format(Stream, '"~w"->"~w=’~w’" [label="properties", style=dotted, color=red];\n', [Concept, Concept, NameStr]),
+    write_attributes(Stream, Concept, Rest).
+
+
 
 % Entry point to generate the DOT code and save it to a file
 generate_ontology_graph :-
@@ -219,8 +223,26 @@ process_option(4) :-
     read(Relation),
     writeln('Enter the object:'),
     read(Object),
+    process_triple_input(Subject, Relation, Object).
+
+process_triple_input(Subject, Relation, Object) :-
+    writeln('Do you want to specify attributes for the triple? (y/n)'),
+    read(Choice),
+    (
+        Choice = 'y' -> process_triple_with_attributes(Subject, Relation, Object);
+        process_triple_without_attributes(Subject, Relation, Object)
+    ).
+
+process_triple_with_attributes(Subject, Relation, Object) :-
+    writeln('Enter the attributes (in the format [(Name, Value)]):'),
+    read(Attributes),
+    insert_triple(Subject, Relation, Object, Attributes),
+    writeln('Triple inserted with attributes.'),
+    menu.
+
+process_triple_without_attributes(Subject, Relation, Object) :-
     insert_triple(Subject, Relation, Object),
-    writeln('Triple inserted.'),
+    writeln('Triple inserted without attributes.'),
     menu.
 process_option(5) :-
     writeln('Enter the concept name:'),
